@@ -47,12 +47,92 @@ class PreprocessData:
 
 
 
-class TF_IDF:
+class WordRepresentation:
     def __init__(self,dataset):
         self.dataset=dataset
         self.ponderations={}
-        self.tf_idf()
+        self.vectors={}
+        self.frequencies={}
+        self.length=0 #The number of words on the dataset
+        #self.tf_idf()
+        #self.one_hot()
+        self.frequency()
     
+    #One hot
+    def one_hot(self):
+        if self.ponderations or self.frequencies:
+            #The case if we have the ponderations or the frequencies , we don't need to search the words again
+            #This condition will reduce the time complexity a lot   
+            words_dict={}
+            if self.ponderations:
+                words_dict=self.ponderations
+            else:
+                words_dict=self.frequencies
+            for word in self.words_dict:
+                self.vectors[word]=np.zeros(len(self.dataset))
+        else:
+            for i in range(len(self.dataset)):
+                document=self.dataset.iloc[i,0]
+                word_list=document.split(" ")
+                for word in word_list:
+                    if word not in self.vectors:
+                        self.vectors[word]=np.zeros(len(self.dataset))
+        #Now we have all the words initialized as vector zero of size the length of the dataset
+        for word in self.vectors:
+            for i in range(len(self.dataset)):
+                document=self.dataset.iloc[i,0]
+                if word in document:
+                    self.vectors[word][i]=1
+
+
+
+
+    #Frequency encoding
+    def frequency(self):
+        if self.ponderations or self.vectors:
+            #The case if we have the ponderations or the frequences =, we don't need to search the words again
+            #This condition will reduce the time complexity a lot
+            
+            words_dict={}
+            if self.ponderations:
+                words_dict=self.ponderations
+            else:
+                words_dict=self.vectors
+            for word in self.words_dict:
+                self.frequencies[word]=0
+        else:
+            for i in range(len(self.dataset)):
+                document=self.dataset.iloc[i,0]
+                word_list=document.split(" ")
+                for word in word_list:
+                    if word not in self.frequencies:
+                        self.frequencies[word]=0
+        #Now we have all the words initialized as zero scalar
+        self.compute_length()
+        for word in self.frequencies:
+            self.frequencies[word]=self.count_word(word)/self.length
+    
+    
+    #This function takes a word and count the number of occurences of the word in the document
+    def count_word(self,word):
+        sum=0
+        for i in range(len(self.dataset)):
+            document=self.dataset.iloc[i,0]
+            sum+=document.count(word)
+        return sum
+    #This function compute the length 
+    def compute_length(self):
+        for i in range(len(self.dataset)):
+            document=self.dataset.iloc[i,0]
+            word_list=document.split(" ")
+            self.length+=len(word_list)
+    
+
+    
+
+
+
+    #TF_IDF
     def term_frequency(self,word,document):
         #Frequence of the word over number of word of document
         word_list=document.split(" ")
@@ -80,10 +160,5 @@ class TF_IDF:
 
 path="/Users/aba/Desktop/BNB/IMDB_Dataset.csv"
 documents=PreprocessData(path)
-words=TF_IDF(documents.dataset)
-i=0
-for val in words.ponderations:
-    print(words.ponderations[val])
-    i+=1
-    if i==10:
-        break
+words=WordRepresentation(documents.dataset.iloc[:5,:])
+print(words.frequencies)
